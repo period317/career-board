@@ -30,13 +30,26 @@ function contentTypeBadge(type: ContentType) {
   return null
 }
 
+const SOURCE_LABEL: Record<string, string> = {
+  wanted:    '원티드',
+  linkareer: '링커리어',
+  saramin:   '사람인',
+  worknet:   '워크넷',
+  manual:    '직접등록',
+}
+
 function JobCard({ job }: { job: Job }) {
   const days = daysUntil(job.deadline)
   const deadlineSoon = days !== null && days <= 7 && days >= 0
   const expDisplay = job.experience_level || '경력 무관'
 
   return (
-    <Link href={`/jobs/${job.id}`} className="job-card block p-5">
+    <a
+      href={job.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="job-card block p-5"
+    >
       <div className="flex items-start justify-between gap-3 mb-2">
         <div className="flex flex-wrap items-center gap-1.5">
           {job.is_featured && <span className="tag featured">추천</span>}
@@ -60,10 +73,12 @@ function JobCard({ job }: { job: Job }) {
       </div>
 
       <div className="mt-3 pt-3 border-t border-[#F0F0EE] flex items-center justify-between text-[11px] text-[#ABABAB]">
-        <span>{job.category_raw ?? '기타'}</span>
+        <span className="font-medium text-[#0052CC]">
+          {SOURCE_LABEL[job.source] ?? job.source}
+        </span>
         <span>마감 {fmtDate(job.deadline)}</span>
       </div>
-    </Link>
+    </a>
   )
 }
 
