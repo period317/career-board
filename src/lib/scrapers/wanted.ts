@@ -11,12 +11,13 @@
 
 const BASE = 'https://www.wanted.co.kr/api/v4/jobs'
 
-// 우리가 수집할 카테고리
+// 우리가 수집할 카테고리 (id → slug 매핑 포함)
 export const WANTED_CATEGORIES = [
-  { id: 507, name: '서비스기획/UX' },
-  { id: 523, name: '마케팅' },
-  { id: 524, name: '기획/전략' },
-  { id: 510, name: '운영' },
+  { id: 507,  name: '서비스기획/UX',  slug: 'planning'  },
+  { id: 518,  name: 'PM/프로덕트',    slug: 'pm-po'     },
+  { id: 523,  name: '마케팅',          slug: 'marketing' },
+  { id: 524,  name: '기획/전략',       slug: 'biz-dev'   },
+  { id: 510,  name: '운영',            slug: 'ops'       },
 ]
 
 export type WantedJob = {

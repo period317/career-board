@@ -33,12 +33,13 @@ export const SARAMIN_KEYWORDS: Record<CategorySlug, string[]> = {
 export function inferCategory(title: string, categoryRaw?: string | null): CategorySlug | null {
   const text = `${title} ${categoryRaw ?? ''}`.toLowerCase()
 
-  // 우선순위: PM/PO → 기획 → 마케팅 → 사업기획 → 운영
-  if (/\b(pm|po|product\s*(manager|owner)|프로덕트\s*(매니저|오너))\b/i.test(text)) return 'pm-po'
-  if (/사업\s*기획|사업\s*개발|\bbd\b|biz\s*dev/i.test(text)) return 'biz-dev'
+  // 우선순위: PM/PO → 사업기획 → 마케팅 → 기획 → 운영
+  if (/(^|\s|[(\[/])(pm|po)(\s|[)\]/,]|$)/i.test(text)) return 'pm-po'
+  if (/product\s*(manager|owner)|프로덕트\s*(매니저|오너)/i.test(text)) return 'pm-po'
+  if (/사업\s*기획|사업\s*개발|biz[\s-]?dev|\bbd\b/i.test(text)) return 'biz-dev'
   if (/마케팅|마케터|marketing|그로스|퍼포먼스|브랜딩|브랜드\s*매니저/i.test(text)) return 'marketing'
-  if (/서비스\s*기획|전략\s*기획|기획자|기획\s*(매니저|담당)/i.test(text)) return 'planning'
   if (/서비스\s*운영|사업\s*운영|운영\s*기획/i.test(text)) return 'ops'
+  if (/기획/i.test(text)) return 'planning'  // "기획" 포함이면 모두 매칭
 
   return null
 }

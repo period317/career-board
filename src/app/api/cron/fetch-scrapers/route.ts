@@ -4,7 +4,7 @@
 import { NextResponse } from 'next/server'
 import { fetchWanted, mapWantedToJob, WANTED_CATEGORIES } from '@/lib/scrapers/wanted'
 import { fetchLinkareerInterns, mapLinkareerToJob } from '@/lib/scrapers/linkareer'
-import { inferCategory } from '@/lib/categories'
+import { inferCategory, type CategorySlug } from '@/lib/categories'
 
 export async function GET(req: Request) {
   const authHeader = req.headers.get('authorization')
@@ -34,9 +34,8 @@ export async function GET(req: Request) {
 
       for (const wj of jobs) {
         const mapped = mapWantedToJob(wj)
-        const slug = inferCategory(mapped.title, mapped.category_raw)
-        // 관련 없는 공고 (FDS, 개발, 디자인 등) 제외
-        if (!slug) continue
+        // 원티드 카테고리 ID로 직접 매핑 (title 기반 추론보다 정확)
+        const slug = cat.slug as CategorySlug
         const category_id = slugToId.get(slug) ?? null
 
         const { error } = await db.from('jobs').upsert(
