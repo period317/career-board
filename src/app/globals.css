@@ -1,14 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #F7F7F5;
-  --surface: #FFFFFF;
-  --border: #E5E5E3;
+  --bg: #FFFFFF;
+  --surface: #F9FAFB;
+  --border: #E5E7EB;
   --text-primary: #111111;
-  --text-secondary: #6B6B6B;
-  --text-tertiary: #ABABAB;
-  --accent: #111111;
-  --accent-soft: #FEF3C7;
+  --text-secondary: #6B7280;
+  --text-tertiary: #9CA3AF;
+  --accent: #0052CC;
+  --accent-light: #EDF2FF;
+  --accent-soft: #FCD34D;
 }
 
 * {
@@ -51,7 +52,7 @@ body {
   display: inline-block;
 }
 .filter-pill.active {
-  background: #111111;
+  background: var(--accent);
   color: #ffffff;
 }
 .filter-pill.inactive {
@@ -75,9 +76,9 @@ body {
   border: 1px solid #E5E5E3;
 }
 .tag.featured {
-  background: #111111;
+  background: var(--accent);
   color: #fff;
-  border-color: #111111;
+  border-color: var(--accent);
 }
 .tag.recommend {
   background: #FEF3C7;
@@ -88,6 +89,16 @@ body {
   background: #FEE2E2;
   color: #B91C1C;
   border-color: #FECACA;
+}
+.tag.tag-intern {
+  background: #EDE9FE;
+  color: #5B21B6;
+  border-color: #DDD6FE;
+}
+.tag.tag-bootcamp {
+  background: #ECFDF5;
+  color: #065F46;
+  border-color: #A7F3D0;
 }
 
 .btn-primary {

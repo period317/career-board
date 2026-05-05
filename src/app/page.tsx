@@ -1,9 +1,16 @@
 import Link from 'next/link'
-import { CATEGORIES } from '@/lib/categories'
+import { CATEGORIES, EXPERIENCE_LEVELS } from '@/lib/categories'
 import { listJobs } from '@/lib/jobs-store'
-import type { Job } from '@/lib/types'
+import type { Job, ContentType } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
+
+const CONTENT_TYPES: { slug: ContentType | 'all'; name: string; desc: string }[] = [
+  { slug: 'all',      name: '전체',    desc: '모든 공고' },
+  { slug: 'job',      name: '채용',    desc: '정규직 채용공고' },
+  { slug: 'intern',   name: '인턴십',  desc: '인턴·계약직' },
+  { slug: 'bootcamp', name: '부트캠프', desc: '교육·과정' },
+]
 
 function daysUntil(deadline: string | null): number | null {
   if (!deadline) return null
@@ -17,6 +24,12 @@ function fmtDate(d: string | null): string {
   return `${date.getMonth() + 1}/${date.getDate()}`
 }
 
+function contentTypeBadge(type: ContentType) {
+  if (type === 'intern')   return <span className="tag tag-intern">인턴</span>
+  if (type === 'bootcamp') return <span className="tag tag-bootcamp">부트캠프</span>
+  return null
+}
+
 function JobCard({ job }: { job: Job }) {
   const days = daysUntil(job.deadline)
   const deadlineSoon = days !== null && days <= 7 && days >= 0
@@ -27,6 +40,7 @@ function JobCard({ job }: { job: Job }) {
       <div className="flex items-start justify-between gap-3 mb-2">
         <div className="flex flex-wrap items-center gap-1.5">
           {job.is_featured && <span className="tag featured">추천</span>}
+          {contentTypeBadge(job.content_type)}
           {job.recommendation_tags?.slice(0, 2).map((t) => (
             <span key={t} className="tag recommend">{t}</span>
           ))}
@@ -54,12 +68,37 @@ function JobCard({ job }: { job: Job }) {
 }
 
 type PageProps = {
-  searchParams: Promise<{ cat?: string }>
+  searchParams: Promise<{ type?: string; cat?: string; exp?: string }>
 }
 
 export default async function HomePage({ searchParams }: PageProps) {
-  const { cat } = await searchParams
-  const jobs = await listJobs({ category: cat })
+  const { type, cat, exp } = await searchParams
+  const activeType = (type as ContentType | undefined) ?? 'all'
+
+  const jobs = await listJobs({
+    contentType: activeType === 'all' ? undefined : activeType,
+    category: cat,
+    experience: exp,
+  })
+
+  // 현재 필터 유지하며 URL 빌드
+  function buildUrl(params: { type?: string; cat?: string; exp?: string }) {
+    const p = new URLSearchParams()
+    const t = params.type ?? type
+    const c = params.cat  ?? cat
+    const e = params.exp  ?? exp
+    if (t && t !== 'all') p.set('type', t)
+    if (c && c !== 'all') p.set('cat', c)
+    if (e && e !== 'all') p.set('exp', e)
+    const s = p.toString()
+    return s ? `/?${s}` : '/'
+  }
+
+  // 탭 전환 시 직군/경력 필터 초기화
+  function typeUrl(slug: string) {
+    if (slug === 'all') return '/'
+    return `/?type=${slug}`
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-5 py-8">
@@ -70,27 +109,66 @@ export default async function HomePage({ searchParams }: PageProps) {
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-6">
-        <Link
-          href="/"
-          className={`filter-pill ${!cat ? 'active' : 'inactive'}`}
-        >
-          전체
-        </Link>
-        {CATEGORIES.map((c) => (
+      {/* 콘텐츠 유형 탭 */}
+      <div className="flex gap-1 mb-6 border-b border-[#E5E7EB]">
+        {CONTENT_TYPES.map((ct) => (
           <Link
-            key={c.slug}
-            href={`/?cat=${c.slug}`}
-            className={`filter-pill ${cat === c.slug ? 'active' : 'inactive'}`}
+            key={ct.slug}
+            href={typeUrl(ct.slug)}
+            className={`px-4 py-2.5 text-[14px] font-medium border-b-2 -mb-px transition-colors ${
+              activeType === ct.slug
+                ? 'border-[#0052CC] text-[#0052CC]'
+                : 'border-transparent text-[#6B7280] hover:text-[#111111]'
+            }`}
           >
-            {c.name}
+            {ct.name}
           </Link>
         ))}
       </div>
 
+      {/* 직군 필터 */}
+      <div className="mb-4">
+        <p className="text-[12px] text-[#6B7280] font-medium mb-2">직군</p>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href={buildUrl({ cat: 'all', exp })}
+            className={`filter-pill ${!cat ? 'active' : 'inactive'}`}
+          >
+            전체
+          </Link>
+          {CATEGORIES.map((c) => (
+            <Link
+              key={c.slug}
+              href={buildUrl({ cat: c.slug, exp })}
+              className={`filter-pill ${cat === c.slug ? 'active' : 'inactive'}`}
+            >
+              {c.name}
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* 경력 필터 — 부트캠프에서는 미표시 */}
+      {activeType !== 'bootcamp' && (
+        <div className="mb-6">
+          <p className="text-[12px] text-[#6B7280] font-medium mb-2">경력</p>
+          <div className="flex flex-wrap gap-2">
+            {EXPERIENCE_LEVELS.map((e) => (
+              <Link
+                key={e.slug}
+                href={buildUrl({ cat, exp: e.slug })}
+                className={`filter-pill ${exp === e.slug || (!exp && e.slug === 'all') ? 'active' : 'inactive'}`}
+              >
+                {e.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       {jobs.length === 0 ? (
         <div className="card p-12 text-center text-[#6B6B6B] text-sm">
-          해당 직군 공고가 아직 없습니다.
+          해당 조건의 공고가 아직 없습니다.
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

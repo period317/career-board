@@ -6,10 +6,13 @@ export type JobCategory = {
   sort_order: number
 }
 
+export type ContentType = 'job' | 'intern' | 'bootcamp'
+
 export type Job = {
   id: number
-  source: 'saramin' | 'worknet' | 'manual'
+  source: 'saramin' | 'worknet' | 'wanted' | 'linkareer' | 'manual'
   source_id: string
+  content_type: ContentType
   url: string
 
   company_name: string
@@ -20,6 +23,7 @@ export type Job = {
   experience_level: string | null
   experience_min: number | null
   experience_max: number | null
+  experience_category: 'newbie' | 'junior' | 'senior' | null
   employment_type: string | null
   location: string | null
   salary: string | null

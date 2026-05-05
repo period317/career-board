@@ -10,6 +10,16 @@ export const CATEGORIES = [
 
 export type CategorySlug = typeof CATEGORIES[number]['slug']
 
+// 경력 레벨 카테고리
+export const EXPERIENCE_LEVELS = [
+  { slug: 'all',     name: '전체' },
+  { slug: 'newbie',  name: '신입/인턴' },
+  { slug: 'junior',  name: '주니어 (1~5년)' },
+  { slug: 'senior',  name: '시니어 (6~12년)' },
+] as const
+
+export type ExperienceLevelSlug = typeof EXPERIENCE_LEVELS[number]['slug']
+
 // 사람인 키워드 매칭 (API 호출 시 사용)
 export const SARAMIN_KEYWORDS: Record<CategorySlug, string[]> = {
   'planning':  ['서비스기획', '전략기획', '기획자'],
@@ -29,6 +39,24 @@ export function inferCategory(title: string, categoryRaw?: string | null): Categ
   if (/마케팅|마케터|marketing|그로스|퍼포먼스|브랜딩|브랜드\s*매니저/i.test(text)) return 'marketing'
   if (/서비스\s*기획|전략\s*기획|기획자|기획\s*(매니저|담당)/i.test(text)) return 'planning'
   if (/서비스\s*운영|사업\s*운영|운영\s*기획/i.test(text)) return 'ops'
+
+  return null
+}
+
+// 경력 레벨 추론 (경력 텍스트로부터)
+export function inferExperienceCategory(experienceLevel: string | null): 'newbie' | 'junior' | 'senior' | null {
+  if (!experienceLevel) return null
+
+  const text = experienceLevel.toLowerCase()
+
+  // 신입/인턴
+  if (/신입|인턴|무경력|경력무관|신입 이상/i.test(text)) return 'newbie'
+
+  // 시니어 (6년 이상)
+  if (/6년\s*이상|7년\s*이상|8년\s*이상|6~|7~|8~|9~|10~|11~|12년|13년|14년|15년|고경력|senior/i.test(text)) return 'senior'
+
+  // 주니어 (1~5년)
+  if (/1년|2년|3년|4년|5년|1~|2~|3~|4~|5~|주니어|1~5년|경력 [1-5]년/i.test(text)) return 'junior'
 
   return null
 }

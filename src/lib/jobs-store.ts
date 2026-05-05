@@ -3,7 +3,9 @@
 
 import { MOCK_JOBS } from './mock-jobs'
 import type { Job } from './types'
-import { inferCategory } from './categories'
+import { inferCategory, inferExperienceCategory } from './categories'
+
+export type ExperienceCategory = 'newbie' | 'junior' | 'senior'
 
 const HAS_SUPABASE = !!(
   process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -11,23 +13,28 @@ const HAS_SUPABASE = !!(
 )
 
 export type JobListOptions = {
-  category?: string  // slug
+  category?: string     // slug
+  experience?: string   // 'newbie' | 'junior' | 'senior' | 'all'
+  contentType?: string  // 'job' | 'intern' | 'bootcamp'
   featured?: boolean
   limit?: number
 }
 
-// Mock 데이터에 inferred category slug 부여
-function withInferredCategory(job: Partial<Job>): Partial<Job> & { _slug?: string | null } {
+// Mock 데이터에 inferred category slug + experience category 부여
+function withInferredCategory(job: Partial<Job>): Partial<Job> & { _slug?: string | null; _expCategory?: 'newbie' | 'junior' | 'senior' | null } {
   return {
     ...job,
     _slug: inferCategory(job.title ?? '', job.category_raw),
+    _expCategory: inferExperienceCategory(job.experience_level ?? null),
   }
 }
 
 export async function listJobs(opts: JobListOptions = {}): Promise<Job[]> {
   if (!HAS_SUPABASE) {
     let items = MOCK_JOBS.map(withInferredCategory)
-    if (opts.category) items = items.filter((j) => j._slug === opts.category)
+    if (opts.contentType && opts.contentType !== 'all') items = items.filter((j) => j.content_type === opts.contentType)
+    if (opts.category && opts.category !== 'all') items = items.filter((j) => j._slug === opts.category)
+    if (opts.experience && opts.experience !== 'all') items = items.filter((j) => j._expCategory === opts.experience)
     if (opts.featured) items = items.filter((j) => j.is_featured)
     if (opts.limit) items = items.slice(0, opts.limit)
     // sort by featured + recent
@@ -53,6 +60,12 @@ export async function listJobs(opts: JobListOptions = {}): Promise<Job[]> {
       .eq('slug', opts.category)
       .single()
     if (cat) q = q.eq('category_id', (cat as { id: number }).id)
+  }
+  if (opts.contentType && opts.contentType !== 'all') {
+    q = q.eq('content_type', opts.contentType)
+  }
+  if (opts.experience && opts.experience !== 'all') {
+    q = q.eq('experience_category', opts.experience)
   }
   if (opts.featured) q = q.eq('is_featured', true)
   if (opts.limit) q = q.limit(opts.limit)
