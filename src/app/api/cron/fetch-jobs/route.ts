@@ -84,7 +84,7 @@ export async function GET(req: Request) {
     // ── 워크넷 — 인턴십 ─────────────────────────────────
     for (const kw of WORKNET_INTERN_KEYWORDS) {
       try {
-        const jobs = await fetchWorknet({ keyword: kw, empType: '3', display: 100 }) // empType 3 = 인턴
+        const jobs = await fetchWorknet({ keyword: kw, empTp: '3', display: 100 }) // empTp 3 = 인턴
         result.worknet.fetched += jobs.length
 
         for (const wj of jobs) {
