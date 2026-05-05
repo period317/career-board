@@ -2,9 +2,9 @@
 // vercel.json 에서 schedule: "0 1 * * *" (KST 10:00 — fetch-jobs 이후 1시간)
 
 import { NextResponse } from 'next/server'
-import { fetchWanted, mapWantedToJob, isRelevantJob, WANTED_CATEGORIES } from '@/lib/scrapers/wanted'
+import { fetchWanted, mapWantedToJob, WANTED_CATEGORIES } from '@/lib/scrapers/wanted'
 import { fetchLinkareerInterns, mapLinkareerToJob } from '@/lib/scrapers/linkareer'
-import { inferCategory, type CategorySlug } from '@/lib/categories'
+import { inferCategory } from '@/lib/categories'
 
 export async function GET(req: Request) {
   const authHeader = req.headers.get('authorization')
@@ -34,10 +34,9 @@ export async function GET(req: Request) {
 
       for (const wj of jobs) {
         const mapped = mapWantedToJob(wj)
-        // 영업/개발/디자인 등 무관 포지션 제외
-        if (!isRelevantJob(mapped.title)) continue
-        // 원티드 카테고리 ID로 직접 매핑
-        const slug = cat.slug as CategorySlug
+        // 화이트리스트: 기획/PM/마케팅 키워드가 제목에 있는 것만 수집
+        const slug = inferCategory(mapped.title, null)
+        if (!slug) continue
         const category_id = slugToId.get(slug) ?? null
 
         const { error } = await db.from('jobs').upsert(
