@@ -35,7 +35,9 @@ export async function GET(req: Request) {
       for (const wj of jobs) {
         const mapped = mapWantedToJob(wj)
         const slug = inferCategory(mapped.title, mapped.category_raw)
-        const category_id = slug ? slugToId.get(slug) ?? null : null
+        // 관련 없는 공고 (FDS, 개발, 디자인 등) 제외
+        if (!slug) continue
+        const category_id = slugToId.get(slug) ?? null
 
         const { error } = await db.from('jobs').upsert(
           { ...mapped, category_id },
