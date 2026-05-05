@@ -74,6 +74,13 @@ function inferExpFromYears(from: number, to: number): 'newbie' | 'junior' | 'sen
   return null
 }
 
+// 명백히 무관한 포지션 제외 패턴
+const EXCLUDE_PATTERN = /개발자|engineer|designer|디자이너|sales|영업|account\s*executive|alliance|FDS|회계|재무|HR|인사|채용담당|법무|legal|물류|SCM|QA|데이터\s*엔지니어|백엔드|프론트엔드|풀스택|devops|인프라/i
+
+export function isRelevantJob(title: string): boolean {
+  return !EXCLUDE_PATTERN.test(title)
+}
+
 /** 원티드 응답 → DB row 변환 */
 export function mapWantedToJob(w: WantedJob) {
   const expText = w.annual_from === 0 && w.annual_to <= 1
