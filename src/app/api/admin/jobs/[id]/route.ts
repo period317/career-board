@@ -22,7 +22,6 @@ export async function PATCH(
   const patch = await req.json()
 
   if (!HAS_SUPABASE) {
-    // Mock 모드: 메모리 변경만, 실제 영속화 없음
     return NextResponse.json({ ok: true, mock: true })
   }
 
@@ -30,6 +29,29 @@ export async function PATCH(
   const { error } = await supabaseAdmin()
     .from('jobs')
     .update({ ...patch, updated_at: new Date().toISOString() })
+    .eq('id', parseInt(id))
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ ok: true })
+}
+
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  if (!(await requireAdmin())) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+  }
+  const { id } = await params
+
+  if (!HAS_SUPABASE) {
+    return NextResponse.json({ ok: true, mock: true })
+  }
+
+  const { supabaseAdmin } = await import('@/lib/supabase')
+  const { error } = await supabaseAdmin()
+    .from('jobs')
+    .delete()
     .eq('id', parseInt(id))
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
